@@ -4,7 +4,11 @@ export default class Game {
         this.fieldSize = 4;
         this.goblin = goblin;
         this.activeGoblin = null;
-        this.position = null; 
+        this.position = null;
+        this.score = 0;
+        this.missed = 0;
+        this.maxMissed = 5;
+        this.intervalId = null;
     }
 
     newField() {
@@ -23,7 +27,7 @@ export default class Game {
     }
 
     randomPosition() {
-        const position = Math.floor(Math.random()  *  this.fieldSize  *  4);
+        const position = Math.floor(Math.random() * this.fieldSize * 4);
         if (position === this.position) {
             this.randomPosition();
             return;
@@ -38,28 +42,36 @@ export default class Game {
             return;
         }
         this.cells[this.position].firstChild.remove();
-        this.activeGoblin = null; 
+        this.activeGoblin = null;
+        this.missed++;
+        this.checkGameOver();
     }
 
     adventGoblin() {
         this.activeGoblin = this.goblin.getGoblin();
+        this.activeGoblin.addEventListener('click', this.hitGoblin.bind(this));
         this.cells[this.position].appendChild(this.activeGoblin);
     }
 
-    play() {
-        let intervalId;
+    hitGoblin() {
+        this.score++;
+        this.cells[this.position].firstChild.remove();
+        this.activeGoblin = null;
+    }
 
-        function gameLoop() {
-            this.randomPosition();
+    checkGameOver() {
+        if (this.missed >= this.maxMissed) {
+            clearInterval(this.intervalId);
+            alert(`Game Over! Your score is ${this.score}`);
         }
+    }
 
-        intervalId = setInterval(gameLoop.bind(this), 800);
-
-        this.start = () => {
-            this.newField();
-            clearInterval(intervalId); 
-            intervalId = setInterval(gameLoop.bind(this), 800);
+    play() {
+        const gameLoop = () => {
+            this.randomPosition();
         };
+
+        this.intervalId = setInterval(gameLoop.bind(this), 1000);
     }
 
     start() {
